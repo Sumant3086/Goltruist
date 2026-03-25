@@ -14,12 +14,24 @@ const donationRoutes = require('./routes/donations');
 
 const app = express();
 
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'https://goltruist-assignment.vercel.app',
+  'https://goltruist-frontend.vercel.app',
+  'https://goltruist-backend.vercel.app',
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL,
-    /\.vercel\.app$/,   // allow any vercel preview URL
-    'http://localhost:5173',
-  ],
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Allow any vercel.app subdomain
+    if (origin.endsWith('.vercel.app') || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
