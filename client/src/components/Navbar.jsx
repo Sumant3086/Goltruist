@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import styles from './Navbar.module.css';
 
@@ -9,6 +9,8 @@ export default function Navbar() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -16,9 +18,23 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setMenuOpen(false); }, [location]);
+  useEffect(() => { setMenuOpen(false); setDropdownOpen(false); }, [location]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const handleLogout = () => { logout(); navigate('/'); };
+
+  // Only show avatar initial if user is actually logged in and has a name
+  const avatarLetter = user?.name ? user.name[0].toUpperCase() : null;
 
   return (
     <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ''}`}>
@@ -30,6 +46,7 @@ export default function Navbar() {
       {/* Desktop links */}
       <div className={styles.links}>
         <Link to="/charities" className={`${styles.link} ${location.pathname === '/charities' ? styles.active : ''}`}>Charities</Link>
+
         {user ? (
           <>
             <Link to="/dashboard" className={`${styles.link} ${location.pathname === '/dashboard' ? styles.active : ''}`}>Dashboard</Link>
@@ -37,12 +54,29 @@ export default function Navbar() {
             {user.role === 'admin' && (
               <Link to="/admin" className={`${styles.link} ${location.pathname.startsWith('/admin') ? styles.active : ''}`}>Admin</Link>
             )}
-            <div className={styles.userMenu}>
-              <div className={styles.avatar}>{user.name?.[0]?.toUpperCase()}</div>
-              <div className={styles.dropdown}>
-                <Link to="/profile" className={styles.dropItem}>⚙ Settings</Link>
-                <button onClick={handleLogout} className={styles.dropItem}>↩ Logout</button>
-              </div>
+
+            {/* Avatar with click-based dropdown */}
+            <div className={styles.userMenu} ref={dropdownRef}>
+              <button
+                className={styles.avatar}
+                onClick={() => setDropdownOpen(p => !p)}
+                aria-label="User menu"
+              >
+                {avatarLetter}
+              </button>
+
+              {dropdownOpen && (
+                <div className={styles.dropdown}>
+                  <div className={styles.dropName}>{user.name}</div>
+                  <div className={styles.dropDivider} />
+                  <Link to="/profile" className={styles.dropItem} onClick={() => setDropdownOpen(false)}>
+                    ⚙ Settings
+                  </Link>
+                  <button onClick={handleLogout} className={styles.dropItem}>
+                    ↩ Logout
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : (
