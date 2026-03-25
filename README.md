@@ -4,6 +4,23 @@ Trainee Selection Assignment · March 2026
 
 ────────────────────────────────────────────────────────────
 
+SCREENSHOTS
+------------------------------------------------------------------------
+
+SCREENSHOTS
+
+  Home Page
+  ![Home Page](screenshots/HomePage.jpeg)
+
+  Featured Charities
+  ![Featured Charities](screenshots/FeatureCharities.jpeg)
+
+  Donate Page
+  ![Donate Page](screenshots/Donate.jpeg)
+
+  Admin Dashboard
+  ![Admin Dashboard](screenshots/AdminDashboards.jpeg)
+
 LIVE PLATFORM
 
   Website       https://goltruist-assignment.vercel.app
@@ -268,3 +285,4 @@ SCALABILITY NOTES
 Prepared by Sumant Yadav
 Assignment submission for Digital Heroes · digitalheroes.co.in
 March 2026
+
