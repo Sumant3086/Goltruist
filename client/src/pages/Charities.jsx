@@ -45,7 +45,8 @@ export default function Charities() {
             <Link to={`/charities/${c.id}`} className={`card ${styles.card}`}>
               {c.image_url && (
                 <div className={styles.imgWrap}>
-                  <img src={c.image_url} alt={c.name} className={styles.img} />
+                  <img src={c.image_url} alt={c.name} className={styles.img}
+                onError={e => { e.target.style.display = 'none'; }} />
                   <div className={styles.imgOverlay} />
                 </div>
               )}

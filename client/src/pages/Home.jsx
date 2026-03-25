@@ -196,7 +196,8 @@ export default function Home() {
                 <Link to={`/charities/${c.id}`} className={`card card-hover ${styles.charityCard}`}>
                   {c.image_url && (
                     <div className={styles.charityImgWrap}>
-                      <img src={c.image_url} alt={c.name} className={styles.charityImg} />
+                      <img src={c.image_url} alt={c.name} className={styles.charityImg}
+                        onError={e => { e.target.style.display = 'none'; }} />
                       <div className={styles.charityImgOverlay} />
                     </div>
                   )}
