@@ -1,20 +1,8 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- Users
-create table users (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  email text unique not null,
-  password_hash text not null,
-  role text not null default 'subscriber', -- 'subscriber' | 'admin'
-  charity_id uuid references charities(id),
-  charity_percentage numeric default 10,
-  created_at timestamptz default now()
-);
-
--- Charities
-create table charities (
+-- Charities (must come before users due to FK)
+create table if not exists charities (
   id uuid primary key default uuid_generate_v4(),
   name text not null,
   description text,
@@ -24,12 +12,24 @@ create table charities (
   created_at timestamptz default now()
 );
 
+-- Users
+create table if not exists users (
+  id uuid primary key default uuid_generate_v4(),
+  name text not null,
+  email text unique not null,
+  password_hash text not null,
+  role text not null default 'subscriber',
+  charity_id uuid references charities(id),
+  charity_percentage numeric default 10,
+  created_at timestamptz default now()
+);
+
 -- Subscriptions
-create table subscriptions (
+create table if not exists subscriptions (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid unique references users(id) on delete cascade,
-  plan text not null, -- 'monthly' | 'yearly'
-  status text not null default 'active', -- 'active' | 'cancelled' | 'lapsed'
+  plan text not null,
+  status text not null default 'active',
   razorpay_order_id text,
   razorpay_payment_id text,
   started_at timestamptz default now(),
@@ -38,7 +38,7 @@ create table subscriptions (
 );
 
 -- Scores
-create table scores (
+create table if not exists scores (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references users(id) on delete cascade,
   score integer not null check (score >= 1 and score <= 45),
@@ -47,7 +47,7 @@ create table scores (
 );
 
 -- Draws
-create table draws (
+create table if not exists draws (
   id uuid primary key default uuid_generate_v4(),
   numbers integer[] not null,
   mode text default 'random',
@@ -58,8 +58,8 @@ create table draws (
   created_at timestamptz default now()
 );
 
--- Draw Entries (one per subscriber per draw)
-create table draw_entries (
+-- Draw Entries
+create table if not exists draw_entries (
   id uuid primary key default uuid_generate_v4(),
   draw_id uuid references draws(id) on delete cascade,
   user_id uuid references users(id) on delete cascade,
@@ -70,20 +70,20 @@ create table draw_entries (
 );
 
 -- Winners
-create table winners (
+create table if not exists winners (
   id uuid primary key default uuid_generate_v4(),
   draw_id uuid references draws(id),
   user_id uuid references users(id),
-  match_type text not null, -- '5_match' | '4_match' | '3_match'
+  match_type text not null,
   prize_amount numeric default 0,
   proof_url text,
-  verification_status text default 'pending', -- 'pending' | 'approved' | 'rejected'
-  payment_status text default 'unpaid', -- 'unpaid' | 'pending' | 'paid' | 'rejected'
+  verification_status text default 'pending',
+  payment_status text default 'unpaid',
   created_at timestamptz default now()
 );
 
--- Contributions (per subscription payment)
-create table contributions (
+-- Contributions
+create table if not exists contributions (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references users(id),
   subscription_id uuid references subscriptions(id),
@@ -94,9 +94,9 @@ create table contributions (
 );
 
 -- Indexes
-create index on scores(user_id);
-create index on subscriptions(user_id);
-create index on draw_entries(draw_id);
-create index on draw_entries(user_id);
-create index on winners(user_id);
-create index on winners(draw_id);
+create index if not exists idx_scores_user on scores(user_id);
+create index if not exists idx_subs_user on subscriptions(user_id);
+create index if not exists idx_entries_draw on draw_entries(draw_id);
+create index if not exists idx_entries_user on draw_entries(user_id);
+create index if not exists idx_winners_user on winners(user_id);
+create index if not exists idx_winners_draw on winners(draw_id);
